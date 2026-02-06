@@ -20,4 +20,6 @@ El Arduino Pro Micro aprovecha la abertura serigrafiada *OTG/PC Live* para su co
 
 El Adaptador FPC-30p ha de ir alineado con la manguera de la tapa. Recomiendo fijarlo al final, cuando se haya hecho todo el cableado y probado el sistena.
 
+Yo utilicé una *placa de prototipos D1 mini* para el LDO y los dos diodos 1N4007
 
+![Placa prototipos D1 mini.png](Placa prototipos D1 mini.png)
