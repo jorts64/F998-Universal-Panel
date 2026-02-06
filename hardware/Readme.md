@@ -22,4 +22,4 @@ El Adaptador FPC-30p ha de ir alineado con la manguera de la tapa. Recomiendo fi
 
 Yo utilicé una *placa de prototipos D1 mini* para el LDO y los dos diodos 1N4007
 
-![Placa prototipos D1 mini.png](Placa prototipos D1 mini.png)
+![](Placa prototipos D1 mini.png](F998-ArduinoProMicro.png)
