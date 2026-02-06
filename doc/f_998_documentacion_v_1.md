@@ -1,4 +1,4 @@
-# F998 – Documentación general (v1.0 revisada)
+# F998 – Documentación general (v1.0 revisada y abreviada)
 
 > **Estado:** base estable · nomenclatura corregida · referencia normativa
 
