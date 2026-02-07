@@ -42,9 +42,10 @@ Soldaremos conectores en codo angulo recto para facilitar mantener la altura del
 
 ![](F998-ArduinoProMicro.png)
 ![](F998-CD74HC4067.png)
-![](protoboard_D1mini.jpg)
 ![](Conector_FPC30.png)
 ![](Placa_prototipos_D1mini.png)
+![](protoboard_D1mini.jpg)
+
 
 ### Cableado
 
