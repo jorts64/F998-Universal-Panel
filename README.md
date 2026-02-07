@@ -167,7 +167,10 @@ El panel puede evolucionar añadiendo nuevos modos sin modificar la base del sis
 - [f998_guia_usuario_final](doc/f_998_guia_usuario_final.md) – guía de usuario
 - [f998_modo_kdenlive_documentacion](doc/f_998_modo_kdenlive_documentacion.md) – modo Kdenlive
 - [f998_modo_smplayer_documentacion](doc/f_998_modo_smplayer_documentacion.md) – modo SMPlayer
-- [f998_modo_macros_documentacion.md](doc/f_998_modo_macros_documentacion.md) – modo Macros
+- [f998_modo_macros_documentacion](doc/f_998_modo_macros_documentacion.md) – modo Macros
+- [f998_tabla_comandos](doc/f_998_tabla_comandos.md) – Tabla resumen de comandos del protocolo serie
+- [f998_tabla_api_python](doc/f_998_modo_tabla_api_python.md) – Tabla resumen API Python
+- [layout.png](doc/layout.png) – Identificacion de la disposición de los botones, potenciomentros, vúmetros y leds (array 4x9)
 
 ---
 

@@ -6,5 +6,6 @@ En esta carpeta se encuentra la documentación del proyecto una vez se ha realiz
   * Modo kdenlive
   * Modo SMPlayer
   * Modo Macros
-  
+
+![](layout.png)  
   
