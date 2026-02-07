@@ -63,3 +63,6 @@ Usaremos cables Dupont hembra-henbra de 10 cm. Yo he usado normales, pero los de
 * POT8 POT9 a FAD1 FAD2
 * Los cables que unen el conector con el Arduino Pro Micro L0 L1 L2 y L3 llevan una resistencia de 1k en serie. Lo más práctico es cortar el cable, soldar la resistencia y proteger la unión con termoretráctil
 * Si ponemos un cable del conector FPC30 D25 D74 a 3V3 con 100R en serie tendremoa el led de PWR continuamente encendido
+
+![](HWconjunto.jpg)
+![](HWdetalle.jpg)
