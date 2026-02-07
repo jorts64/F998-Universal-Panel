@@ -148,6 +148,7 @@ El panel puede evolucionar añadiendo nuevos modos sin modificar la base del sis
 ## 📄 Documentos incluidos
 
 - [f998_arquitectura_general](doc/f_998_arquitectura_general.md) – arquitectura del sistema
+- [Guia de substitucion del control del DSP por un ArduinoPro Micro](hardware/Readme.md) - guía de modificación del hardware
 - [f998_guia_usuario_final](doc/f_998_guia_usuario_final.md) – guía de usuario
 - [f998_modo_kdenlive_documentacion](doc/f_998_modo_kdenlive_documentacion.md) – modo Kdenlive
 - [f998_modo_smplayer_documentacion](doc/f_998_modo_smplayer_documentacion.md) – modo SMPlayer
