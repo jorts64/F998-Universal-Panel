@@ -52,7 +52,8 @@ Los modos se seleccionan mediante botones dedicados:
 |------|------|
 | 39 | Kdenlive |
 | 38 | SMPlayer |
-| 18, 19, 28, 29 | Modos reservados |
+| 29 | Macros   |
+| 18, 19, 28 | Modos reservados |
 
 Al cambiar de modo:
 - se apagan todos los LEDs
