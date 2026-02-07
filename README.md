@@ -10,7 +10,7 @@ Hemos reemplazado el DSP que lleva por un Arduino Pro Micro, crado un firmware e
 
 El diseño es totalmente flexible. Se puede utilizar tal cual con un ordenador con Linux, ampliar o modificar los modos definidos en el script Python o incluso usar solo el firmware arduino y reemplazar la parte del PC por cualquier otra aplicacion en cualquier sistema operativo.
 
-!{}(F998working.jpg)
+![](F998working.jpg)
 
 # Guía de Usuario Final – Panel F998
 
