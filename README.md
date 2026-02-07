@@ -46,7 +46,7 @@ La arquitectura de F998 está basada en una **separación clara de responsabilid
 Si eres usuario del panel y quieres aprender a utilizarlo en el día a día:
 
 📄 **Guía de Usuario Final**:
-- 👉 `doc/f998_guia_usuario_final.md`
+- 👉 [f998_guia_usuario_final](doc/f_998_guia_usuario_final.md)
 
 Incluye:
 - funcionamiento general del panel
@@ -71,7 +71,7 @@ Control especializado para **edición de vídeo en Kdenlive**:
 - corte de clips
 
 📄 Documentación técnica:
-- 👉 `doc/f998_modo_kdenlive_documentacion.md`
+- 👉 [f998_modo_kdenlive_documentacion](doc/f_998_modo_kdenlive_documentacion.md)
 
 ---
 
@@ -86,7 +86,7 @@ Control remoto avanzado para **reproducción de vídeo en SMPlayer / mpv**:
 - saltos precisos mediante IPC
 
 📄 Documentación técnica:
-- 👉 `doc/f998_modo_smplayer_documentacion.md`
+- 👉 [f998_modo_smplayer_documentacion](doc/f_998_modo_smplayer_documentacion.md)
 
 ---
 
@@ -100,13 +100,13 @@ Modo de **automatización configurable** mediante archivo YAML:
 - ejecutar secuencias de acciones
 
 📄 Documentación técnica:
-- 👉 `doc/f998_modo_macros_documentacion.md`
+- 👉 [f998_modo_macros_documentacion](doc/f_998_modo_macros_documentacion.md)
 
 ---
 
 ## 📁 Configuración
 
-- Las macros se definen en el archivo `softwre/macros.yaml`
+- Las macros se definen en el archivo [macros.yaml](softwre/macros.yaml)
 - Los modos están implementados en Python y seleccionados desde un bucle principal
 - El firmware Arduino expone una API estable independiente del uso final
 
@@ -137,11 +137,11 @@ El panel puede evolucionar añadiendo nuevos modos sin modificar la base del sis
 
 ## 📄 Documentos incluidos
 
-- `doc/f998_arquitectura_general.md` – arquitectura del sistema
-- `doc/f998_guia_usuario_final.md` – guía de usuario
-- `doc/f998_modo_kdenlive_documentacion.md` – modo Kdenlive
-- `doc/f998_modo_smplayer_documentacion.md` – modo SMPlayer
-- `doc/f998_modo_macros_documentacion.md` – modo Macros
+- [f998_arquitectura_general](doc/f_998_arquitectura_general.md) – arquitectura del sistema
+- [f998_guia_usuario_final](doc/f_998_guia_usuario_final.md) – guía de usuario
+- [f998_modo_kdenlive_documentacion](doc/f_998_modo_kdenlive_documentacion.md) – modo Kdenlive
+- [f998_modo_smplayer_documentacion](doc/f_998_modo_smplayer_documentacion.md) – modo SMPlayer
+- [f998_modo_macros_documentacion.md](doc/f_998_modo_macros_documentacion.md) – modo Macros
 
 ---
 
