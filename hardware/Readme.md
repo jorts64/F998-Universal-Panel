@@ -11,6 +11,8 @@
 * Pequeña placa de prototipos de tira con 2 conectores: 3V3 y GND
 * Cables Dupont F-F 10 cm
 
+![](FPC30p.jpg)
+
 ##  Preparación de la caja
 
 Primero debemos abrir la caja. Me fue muy útil un [vídeo en YouTube](https://www.youtube.com/watch?v=PxLtwtSuTzQ) . Importante: la mayoría de tornillos se hallan debajo de las patas adhesivas.
@@ -40,6 +42,7 @@ Soldaremos conectores en codo angulo recto para facilitar mantener la altura del
 
 ![](F998-ArduinoProMicro.png)
 ![](F998-CD74HC4067.png)
+![](protoboard_D1mini.jpg)
 ![](Conector_FPC30.png)
 ![](Placa_prototipos_D1mini.png)
 
