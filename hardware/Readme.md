@@ -62,7 +62,13 @@ Usaremos cables Dupont hembra-henbra de 10 cm. Yo he usado normales, pero los de
 * pin GND derecho del arduino a PCB de titras, de ahí toman el resto de componentes GND
 * POT8 POT9 a FAD1 FAD2
 * Los cables que unen el conector con el Arduino Pro Micro L0 L1 L2 y L3 llevan una resistencia de 1k en serie. Lo más práctico es cortar el cable, soldar la resistencia y proteger la unión con termoretráctil
+* pin 16 de Arduino a PWR FPC30
 * Si ponemos un cable del conector FPC30 D25 D74 a 3V3 con 100R en serie tendremoa el led de PWR continuamente encendido
+* Podemos conectar un pulsador entre el RST del Arduino Pro Micro y GND, colocandolo en uno de los agujeros de los antiguos conectores de audio para permitir su acceso.
+
+![](F998_schem.png)
+
+![](D1miniProtoboard_bb.png)
 
 ![](HWconjunto.jpg)
 
