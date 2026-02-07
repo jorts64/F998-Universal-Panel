@@ -1,3 +1,8 @@
+# =================================================
+# LICENCIA CREATIVE COMMONS 3.0 BY-NC-SA
+# Jordi Orts 2026
+# =================================================
+
 import serial
 import time
 

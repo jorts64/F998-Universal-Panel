@@ -1,4 +1,9 @@
-print(">>> SCRIPT F998 ACTUAL 3 <<<")
+print("Jordi Orts 2026 CC 3.0 BY-NC-SA")
+
+# =================================================
+# LICENCIA CREATIVE COMMONS 3.0 BY-NC-SA
+# Jordi Orts 2026
+# =================================================
 
 
 import time
