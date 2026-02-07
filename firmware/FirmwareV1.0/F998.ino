@@ -1,7 +1,7 @@
 //
 // Funciones hardware F998
-// (c) Jordi Orts 2026
-// CC BY-NC-SA
+// Jordi Orts 2026
+// CC 3.0 BY-NC-SA
 //
 
 bool ledStat[40];

@@ -1,3 +1,9 @@
+//
+// Jordi Orts 2026
+// CC 3.0 BY-NC-SA
+//
+
+
 void F998_setup();
 
 // Rangos de los parametros

@@ -1,3 +1,8 @@
+//
+// Jordi Orts 2026
+// CC 3.0 BY-NC-SA
+//
+
 #include "F998.h"
 
 #define SERIAL_BAUD 115200
