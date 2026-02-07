@@ -46,6 +46,8 @@ La arquitectura de F998 está basada en una **separación clara de responsabilid
 
 - 👉 [Guia de substitucion del control del DSP por un ArduinoPro Micro](hardware/Readme.md)
 
+![](hardware/HWconjunto.jpg)
+
 ---
 
 
