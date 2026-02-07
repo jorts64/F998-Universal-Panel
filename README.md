@@ -106,7 +106,7 @@ Modo de **automatización configurable** mediante archivo YAML:
 
 ## 📁 Configuración
 
-- Las macros se definen en el archivo [macros.yaml](softwre/macros.yaml)
+- Las macros se definen en el archivo [macros.yaml](software/macros.yaml)
 - Los modos están implementados en Python y seleccionados desde un bucle principal
 - El firmware Arduino expone una API estable independiente del uso final
 
