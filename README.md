@@ -61,6 +61,7 @@ Sólo es necesario soldar pines acodados en ángulo recto a los componentes y co
 - 👉 [Guia de substitución del control del DSP por un Arduino Pro Micro](hardware/Readme.md)
 
 ![](hardware/HWconjunto.jpg)
+![](hardware/HWmuestra.jpg)
 
 ---
 
