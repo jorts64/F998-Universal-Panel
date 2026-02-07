@@ -37,7 +37,7 @@ La arquitectura de F998 está basada en una **separación clara de responsabilid
 - Software PC: lógica de aplicación y modos
 
 📄 **Documento de referencia**:
-- 👉 `doc/f998_arquitectura_general.md`
+- 👉 [f998_arquitectura_general](doc/f998_arquitectura_general.md)
 
 ---
 
