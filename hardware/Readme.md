@@ -65,4 +65,5 @@ Usaremos cables Dupont hembra-henbra de 10 cm. Yo he usado normales, pero los de
 * Si ponemos un cable del conector FPC30 D25 D74 a 3V3 con 100R en serie tendremoa el led de PWR continuamente encendido
 
 ![](HWconjunto.jpg)
+
 ![](HWdetalle.jpg)
