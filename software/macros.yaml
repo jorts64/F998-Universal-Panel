@@ -1,0 +1,51 @@
+10:
+  type: command
+  value: "firefox"
+
+11:
+  type: command
+  value: "caja"
+
+12:
+  type: command
+  value: "pluma"
+
+16:
+  type: keys
+  value: ["ctrl", "c"]
+
+17:
+  type: keys
+  value: ["ctrl", "v"]
+
+31:
+  type: text
+  value: "<html>\n<head>\n</head>\n<body>\n</body>\n</html>\n"
+
+32:
+  type: text
+  value: "<a href=\"\" target=\"_blank\"></a>"
+
+33:
+  type: text
+  value: "<table>\n<tr>\n<td></td>\n</tr>\n</table>\n"
+
+34:
+  type: text
+  value: "b"
+
+35:
+  type: sequence
+  value:
+    - {type: keys, value: ["ctrl", "x"]}
+    - {type: text, value: "{"}
+    - {type: keys, value: ["ctrl", "v"]}
+    - {type: text, value: "}"}
+
+36:
+  type: text
+  value: '"'
+  
+37:
+  type: text
+  value: "ª\\!|@·$~%&/()[]=?'¡¿{}çÇ"
