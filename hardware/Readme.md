@@ -34,6 +34,8 @@ En la caja pondremos en su lugar:
 
 Yo los fijé a la caja con cinta adhesiva doble cara de vinilo: me va genial.
 
+Con la impresora 3D hice unos cubos de soporte para el conector FPC30 (40x15x7 mm) y para el CD74HC4067 (40x15x5 mm)
+
 El Arduino Pro Micro aprovecha la abertura serigrafiada *OTG/PC Live* para su conector USB-C. Hará falta limar un poco el divisor plástico interior para que encaje perfectamente.
 
 El Adaptador FPC-30p ha de ir alineado con la manguera de la tapa. Recomiendo fijarlo al final, cuando se haya hecho todo el cableado y probado el sistena.
