@@ -12,155 +12,138 @@ El diseño es totalmente flexible. Se puede utilizar tal cual con un ordenador c
 
 ![](F998working.jpg)
 
-# Guía de Usuario Final – Panel F998
+# F998 – Panel de Control Programable
 
 ## 📌 Introducción
 
-El **panel F998** es un controlador físico programable diseñado para interactuar con aplicaciones de escritorio mediante comunicación serie. Está pensado para ofrecer **control rápido, ergonómico y visualmente claro** en tareas de edición, reproducción multimedia y automatización mediante macros.
+**F998** es un panel de control físico programable diseñado para interactuar con aplicaciones de escritorio mediante **comunicación serie**, sin utilizar HID.
 
-Esta guía está dirigida al **usuario final**, no al desarrollador, y explica cómo usar el panel en el día a día.
+El sistema combina:
 
----
+- Hardware dedicado (botones, potenciómetros y LEDs)
+- Firmware propio (Arduino)
+- Software en Python con arquitectura por modos
 
-## 🧭 Conceptos básicos
-
-### 🔘 Botones
-
-- Cada botón tiene un **LED asociado**
-- Un botón puede estar:
-  - **Apagado** → no pertenece al modo actual
-  - **Encendido fijo** → acción activa
-  - **Parpadeando** → estado alternativo (pausa, bloqueo, error, modo inactivo)
-
-### 🎚️ Ruedas y potenciómetros
-
-- Las **ruedas (digPot)** tienen una posición central
-- Cuando están centradas:
-  - no generan acciones
-- Al desplazarlas:
-  - la velocidad o intensidad depende de cuánto se alejan del centro
+El objetivo es ofrecer un **control ergonómico, fiable y visualmente claro** para edición de vídeo, reproducción multimedia y automatización personalizada.
 
 ---
 
-## 🔁 Modos del panel
+## 🧱 Arquitectura del sistema
 
-El panel funciona siempre en **un único modo activo**.
+La arquitectura de F998 está basada en una **separación clara de responsabilidades**:
 
-Los modos se seleccionan mediante botones dedicados:
+- Hardware: entradas y salidas físicas
+- Firmware: abstracción del panel y protocolo estable
+- Software PC: lógica de aplicación y modos
 
-| Botón | Modo |
-|------|------|
-| 39 | Kdenlive |
-| 38 | SMPlayer |
-| 29 | Macros   |
-| 18, 19, 28 | Modos reservados |
-
-Al cambiar de modo:
-- se apagan todos los LEDs
-- se activan únicamente los controles del nuevo modo
+📄 **Documento de referencia**:
+- 👉 `doc/f998_arquitectura_general.md`
 
 ---
 
-## ▶️ Modo Kdenlive
+## 🧭 Guía de usuario
 
-Diseñado para **edición de vídeo**.
+Si eres usuario del panel y quieres aprender a utilizarlo en el día a día:
 
-Funciones principales:
-- Play / pausa
-- Avance y retroceso de frames
-- Zoom del timeline
-- Movimiento rápido por la línea de tiempo
-- Cambio de pista
-- Corte de clips
+📄 **Guía de Usuario Final**:
+- 👉 `doc/f998_guia_usuario_final.md`
 
-Indicadores visuales:
-- La matriz 4×9 muestra el nivel de zoom
-- La barra de batería indica dirección y velocidad de desplazamiento
-
-Notas importantes:
-- Las acciones solo se envían cuando Kdenlive tiene el foco
-- Si pierde el foco, el botón de modo parpadea
+Incluye:
+- funcionamiento general del panel
+- interpretación de LEDs y parpadeos
+- uso de los distintos modos
+- buenas prácticas
 
 ---
 
-## ▶️ Modo SMPlayer
+## 🔁 Modos disponibles
 
-Diseñado para **reproducción de vídeo**.
+El panel funciona siempre en **un único modo activo**. Cada modo define su propio comportamiento, controles y feedback visual.
 
-Funciones principales:
-- Play / pausa
-- Avance y retroceso de frames
-- Navegación por el vídeo con la rueda
-- Control de volumen del reproductor
-- Control de volumen del sistema
-- Captura de pantalla
+### ▶️ Modo Kdenlive
 
-Notas importantes:
-- Las acciones solo se envían cuando SMPlayer tiene el foco
-- El panel se comporta como un control remoto avanzado
+Control especializado para **edición de vídeo en Kdenlive**:
 
----
+- play / pausa
+- navegación por frames y segundos
+- zoom del timeline
+- cambio de pistas
+- corte de clips
 
-## ▶️ Modo Macros
-
-Permite asignar **acciones personalizadas** a los botones mediante un archivo de configuración.
-
-Tipos de acciones:
-- Ejecutar comandos
-- Enviar combinaciones de teclas
-- Escribir texto o snippets
-- Ejecutar secuencias de acciones
-
-El usuario puede modificar el archivo `macros.yaml` para cambiar el comportamiento sin tocar el código.
-
-Notas importantes:
-- Algunos caracteres especiales del teclado español no pueden reproducirse y se sustituyen por un marcador visual
-- Las macros se ejecutan con un pequeño retardo para evitar repeticiones accidentales
+📄 Documentación técnica:
+- 👉 `doc/f998_modo_kdenlive_documentacion.md`
 
 ---
 
-## 🔍 Indicadores y alertas
+### ▶️ Modo SMPlayer
 
-### ⚠️ Potenciómetros desajustados
+Control remoto avanzado para **reproducción de vídeo en SMPlayer / mpv**:
 
-Al cambiar de modo, el panel puede requerir que:
-- las ruedas estén centradas
-- ciertos potenciómetros estén a cero
+- play / pausa
+- navegación temporal
+- control de volumen (SMPlayer y sistema)
+- captura de pantalla
+- saltos precisos mediante IPC
 
-Si no es así:
-- la matriz 4×9 muestra la columna correspondiente parpadeando
-- el modo no se activa hasta corregir la posición
-
----
-
-## 🛠️ Buenas prácticas de uso
-
-- Esperar un instante tras pulsar un botón (delay humano)
-- No forzar ruedas fuera de su zona útil
-- Comprobar siempre el LED del modo activo
-- Usar el panel con la aplicación correcta en foco
+📄 Documentación técnica:
+- 👉 `doc/f998_modo_smplayer_documentacion.md`
 
 ---
 
-## ✔️ Estado del sistema
+### ▶️ Modo Macros
 
-El panel F998 es:
-- estable
-- robusto
-- extensible
+Modo de **automatización configurable** mediante archivo YAML:
 
-Está pensado para evolucionar con nuevos modos y funcionalidades.
+- ejecutar comandos
+- enviar combinaciones de teclas
+- escribir texto y snippets
+- ejecutar secuencias de acciones
 
----
-
-## 📄 Documentación relacionada
-
-- Modo Kdenlive – Documentación técnica
-- Modo SMPlayer – Documentación técnica
-- Modo Macros – Documentación técnica
+📄 Documentación técnica:
+- 👉 `doc/f998_modo_macros_documentacion.md`
 
 ---
 
-> **Nota final**: El panel F998 está diseñado para ser intuitivo. Si los LEDs indican el estado correcto, el panel está listo para usarse.
+## 📁 Configuración
 
+- Las macros se definen en el archivo `softwre/macros.yaml`
+- Los modos están implementados en Python y seleccionados desde un bucle principal
+- El firmware Arduino expone una API estable independiente del uso final
+
+---
+
+## 🎛️ Filosofía del proyecto
+
+- No usar HID
+- Feedback visual constante
+- Control explícito del estado
+- Robustez frente a errores
+- Extensibilidad por diseño
+
+El panel puede evolucionar añadiendo nuevos modos sin modificar la base del sistema.
+
+---
+
+## 🚀 Estado del proyecto
+
+- Arquitectura definida
+- Modos principales implementados
+- Documentación completa
+- Uso real validado
+
+**F998 v1** se considera una base sólida y cerrada, lista para evolución futura.
+
+---
+
+## 📄 Documentos incluidos
+
+- `doc/f998_arquitectura_general.md` – arquitectura del sistema
+- `doc/f998_guia_usuario_final.md` – guía de usuario
+- `doc/f998_modo_kdenlive_documentacion.md` – modo Kdenlive
+- `doc/f998_modo_smplayer_documentacion.md` – modo SMPlayer
+- `doc/f998_modo_macros_documentacion.md` – modo Macros
+
+---
+
+> **Nota final**: F998 es un proyecto diseñado para crecer. Esta documentación refleja el estado actual del sistema y sirve como referencia para futuras ampliaciones.
 
