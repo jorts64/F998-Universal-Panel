@@ -11,7 +11,14 @@ import subprocess
 from pynput.keyboard import Controller, Key
 import yaml
 import pyautogui
+import json
+from datetime import datetime
+import tkinter as tk
+from tkinter import simpledialog
+import socket
+import threading
 from f998 import F998
+
 
 # =================================================
 # CONFIGURACIÓN GENERAL
@@ -28,6 +35,7 @@ VOLUME_DELAY = 0.15
 BTN_KDENLIVE = 39
 BTN_SMPLAYER = 38
 BTN_MACROS = 29
+BTN_PREEDITOR = 28
 MACROS_FILE = "macros.yaml"
 
 ACCEL_RUEDA = {1: 1, 2: 4, 3: 8}
@@ -48,10 +56,28 @@ BTN_TRACK_DOWN = 30
 # SMPlayer
 
 BTN_SCREENSHOT = 26
-BTN_GOTO_START = 16
-BTN_GOTO_END = 17
+BTN_GOTO_START = 34
+BTN_GOTO_END = 35
+# SMPlayer – Marcadores
+BTN_MARK_ADD  = 15   # Ctrl + A
+BTN_MARK_PREV = 24   # Ctrl + B
+BTN_MARK_NEXT = 25   # Ctrl + N
 
 MPV_SOCKET = "/tmp/mpvsocket"
+
+# Editor SMPlayer
+
+BTN_NEW_PROJECT     = 12
+BTN_CLOSE_PROJECT   = 22
+BTN_EXPORT_PROJECT  = 32
+
+BTN_NEW_CHAPTER     = 10
+BTN_SAVE_CHAPTER    = 11
+
+BTN_MARK_IN         = 20
+BTN_MARK_OUT        = 30
+BTN_ADD_SEGMENT     = 21
+BTN_DELETE_LAST     = 31
 
 
 # =================================================
@@ -89,25 +115,35 @@ def limpiar_blink_matriz():
 # CONTROL DE FOCO
 # =================================================
 
-def kdenlive_en_foco():
+
+def proceso_en_foco(nombre_proceso):
+    """
+    Devuelve True si el proceso indicado tiene el foco.
+    La detección se realiza mediante PID de la ventana activa.
+    Compatible con Ubuntu y Debian.
+    """
     try:
-        nombre = subprocess.check_output(
-            ["xdotool", "getactivewindow", "getwindowname"],
-            stderr=subprocess.DEVNULL
-        ).decode(errors="ignore").lower()
-        return "kdenlive" in nombre
+        pid = subprocess.check_output(
+            ["xdotool", "getactivewindow", "getwindowpid"],
+            text=True
+        ).strip()
+
+        proc = subprocess.check_output(
+            ["ps", "-p", pid, "-o", "comm="],
+            text=True
+        ).strip().lower()
+
+        return nombre_proceso.lower() in proc
+
     except Exception:
         return False
 
 def smplayer_en_foco():
-    try:
-        nombre = subprocess.check_output(
-            ["xdotool", "getactivewindow", "getwindowname"],
-            stderr=subprocess.DEVNULL
-        ).decode(errors="ignore").lower()
-        return "smplayer" in nombre
-    except Exception:
-        return False
+    return proceso_en_foco("smplayer")
+
+
+def kdenlive_en_foco():
+    return proceso_en_foco("kdenlive")
 
 # =================================================
 # COMPROBACIÓN PREVIA
@@ -305,15 +341,175 @@ last_button_sm = 0
 last_wheel_sm = 0
 last_volume_smplayer = 0 
 last_volume_system = 0 
+last_pause_check = 0
+cached_pause_state = None
 
-def mpv_cmd(cmd):
+# --------------------------------------------------
+# ENVÍO SIMPLE (sin esperar respuesta)
+# --------------------------------------------------
+
+def mpv_send(cmd_dict):
     try:
-        subprocess.call(
-            f'echo \'{cmd}\' | socat - "{MPV_SOCKET}"',
-            shell=True,
-            stdout=subprocess.DEVNULL,
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.connect(MPV_SOCKET)
+
+        sock.sendall((json.dumps(cmd_dict) + "\n").encode())
+        sock.close()
+
+    except Exception:
+        return None
+
+
+# --------------------------------------------------
+# CONSULTA (lectura segura por línea)
+# --------------------------------------------------
+
+def mpv_query(cmd_dict):
+    try:
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.connect(MPV_SOCKET)
+
+        sock.sendall((json.dumps(cmd_dict) + "\n").encode())
+
+        # Lectura robusta hasta salto de línea
+        file = sock.makefile()
+        line = file.readline()
+
+        sock.close()
+
+        if line:
+            return json.loads(line)
+
+    except Exception:
+        return None
+
+
+# --------------------------------------------------
+# FUNCIONES AUXILIARES
+# --------------------------------------------------
+
+def mpv_get_pause():
+    r = mpv_query({"command": ["get_property", "pause"]})
+    if r and "data" in r:
+        return bool(r["data"])
+    return None
+
+
+def mpv_set_pause(state: bool):
+    mpv_send({"command": ["set_property", "pause", state]})
+
+
+def mpv_get_time():
+    r = mpv_query({"command": ["get_property", "time-pos"]})
+    if r and "data" in r and r["data"] is not None:
+        return float(r["data"])
+    return None
+
+
+def mpv_get_path():
+    r = mpv_query({"command": ["get_property", "path"]})
+    if r and "data" in r:
+        return r["data"]
+    return None
+
+
+def mpv_get_pid():
+    r = mpv_query({"command": ["get_property", "pid"]})
+    if r and "data" in r:
+        return int(r["data"])
+    return None
+
+
+def mpv_seek_absolute(seconds):
+    mpv_send({"command": ["seek", seconds, "absolute"]})
+
+
+def mpv_seek_relative(seconds):
+    mpv_send({"command": ["seek", seconds, "relative"]})
+
+
+def update_play_led():
+
+    global last_pause_check
+    global cached_pause_state
+
+    now = time.time()
+
+    # Consultar cada 300 ms
+    if now - last_pause_check < 0.3:
+        return
+
+    last_pause_check = now
+
+    p = mpv_get_pause()
+    if p is None:
+        return
+
+    # Solo actuar si cambia el estado
+    if p != cached_pause_state:
+
+        cached_pause_state = p
+
+        # Siempre encendido en modo activo
+        f.ledButton(BTN_PLAY, True)
+
+        # Parpadea si está en pausa
+        f.ledBlink(BTN_PLAY, p)
+
+
+def tk_prompt(titulo, mensaje):
+
+    resultado = {"valor": None}
+
+    def dialogo():
+
+        root = tk.Tk()
+        root.title(titulo)
+
+        tk.Label(root, text=mensaje).pack(padx=20, pady=10)
+
+        entry = tk.Entry(root)
+        entry.pack(padx=20, pady=10)
+        entry.focus()
+
+        def aceptar():
+            resultado["valor"] = entry.get()
+            root.destroy()
+
+        entry.bind("<Return>", lambda e: aceptar())
+        tk.Button(root, text="Aceptar", command=aceptar).pack(pady=10)
+
+        root.mainloop()
+
+    hilo = threading.Thread(target=dialogo)
+    hilo.start()
+    hilo.join()   # <- espera pero loop principal no está bloqueado
+
+    return resultado["valor"]
+
+
+def smplayer_focus():
+
+    pid = mpv_get_pid()
+    if not pid:
+        return
+
+    try:
+        win_ids = subprocess.check_output(
+            ["xdotool", "search", "--onlyvisible", "--pid", str(pid)],
+            text=True,
             stderr=subprocess.DEVNULL
-        )
+        ).strip().split("\n")
+
+        for wid in win_ids:
+            if wid.strip():
+                subprocess.call(
+                    ["xdotool", "windowactivate", "--sync", wid],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                break
+
     except Exception:
         pass
 
@@ -324,32 +520,32 @@ def smplayer_init():
     # Play activo por defecto
     f.ledButton(BTN_PLAY, True)
 
-def smplayer_loop(k, estado):
-    global smplayer_en_pausa
-    global last_button_sm, last_wheel_sm, last_volume_sm
-    global last_volume_smplayer, last_volume_system
+def smplayer_core(k, estado):
 
-    foco = smplayer_en_foco()
-
-    # LED del modo: encendido si foco, blink si no
-    f.ledBlink(BTN_SMPLAYER, not foco)
-    if foco:
-        f.ledButton(BTN_SMPLAYER, True)
-    else:
-        return
+    global last_button_sm
+    global last_wheel_sm
+    global last_volume_smplayer
+    global last_volume_system
 
     now = time.time()
 
-    # ---------- BOTONES ----------
+    # --------------------------------------------------
+    # SINCRONIZACIÓN LED PLAY
+    # --------------------------------------------------
+    update_play_led()
+
+    # --------------------------------------------------
+    # BOTONES
+    # --------------------------------------------------
     if k and now - last_button_sm > BTN_DELAY:
+
         last_button_sm = now
 
         if k == BTN_PLAY:
-            kbd.tap(Key.space)
-            smplayer_en_pausa = not smplayer_en_pausa
-            f.ledBlink(BTN_PLAY, smplayer_en_pausa)
-            if not smplayer_en_pausa:
-                f.ledButton(BTN_PLAY, True)
+
+            p = mpv_get_pause()
+            if p is not None:
+                mpv_set_pause(not p)
 
         elif k == BTN_FRAME_LEFT:
             kbd.tap(',')
@@ -361,13 +557,31 @@ def smplayer_loop(k, estado):
             kbd.tap('s')
 
         elif k == BTN_GOTO_START:
-            mpv_cmd('{ "command": ["seek", 0, "absolute"] }')
+            mpv_send({"command": ["seek", 0, "absolute"]})
 
         elif k == BTN_GOTO_END:
-            mpv_cmd('{ "command": ["seek", -60, "absolute"] }')
+            mpv_send({"command": ["seek", -60, "absolute"]})
 
-    # ---------- RUEDA (digPot 7) ----------
+        elif k == BTN_MARK_ADD:
+            kbd.press(Key.ctrl)
+            kbd.tap('a')
+            kbd.release(Key.ctrl)
+
+        elif k == BTN_MARK_PREV:
+            kbd.press(Key.ctrl)
+            kbd.tap('b')
+            kbd.release(Key.ctrl)
+
+        elif k == BTN_MARK_NEXT:
+            kbd.press(Key.ctrl)
+            kbd.tap('n')
+            kbd.release(Key.ctrl)
+
+    # --------------------------------------------------
+    # RUEDA (digPot 7)
+    # --------------------------------------------------
     if now - last_wheel_sm > WHEEL_DELAY:
+
         last_wheel_sm = now
         v = estado["D"][6]
 
@@ -384,12 +598,15 @@ def smplayer_loop(k, estado):
         elif v == 6:
             kbd.tap(Key.page_up)
 
-
-    # ---------- VOLUMEN SISTEMA (digPot 1) ----------
+    # --------------------------------------------------
+    # VOLUMEN SISTEMA (digPot 1)
+    # --------------------------------------------------
     dv = estado["D"][0] - 3
     if dv != 0 and now - last_volume_system > VOLUME_DELAY:
+
         last_volume_system = now
         pasos = abs(dv)
+
         if dv > 0:
             subprocess.call(
                 ["amixer", "-q", "set", "Master", f"{pasos * VOLUME_STEP}%+"]
@@ -399,11 +616,14 @@ def smplayer_loop(k, estado):
                 ["amixer", "-q", "set", "Master", f"{pasos * VOLUME_STEP}%-"]
             )
 
-
-    # ---------- VOLUMEN SMPLAYER (digPot 2) ----------
+    # --------------------------------------------------
+    # VOLUMEN SMPLAYER (digPot 2)
+    # --------------------------------------------------
     dv = estado["D"][1] - 3
     if dv != 0 and now - last_volume_smplayer > VOLUME_DELAY:
+
         last_volume_smplayer = now
+
         for _ in range(abs(dv)):
             kbd.tap('9' if dv < 0 else '0')
 
@@ -421,11 +641,15 @@ def modo_smplayer():
             BTN_SCREENSHOT,
             BTN_GOTO_START,
             BTN_GOTO_END,
+            BTN_MARK_ADD,
+            BTN_MARK_PREV,
+            BTN_MARK_NEXT,
         ],
         smplayer_init,
         smplayer_loop,
         smplayer_exit
     )
+
 
 # =================================================
 # MODO MACROS
@@ -587,6 +811,340 @@ def modo_macros():
         on_exit=macros_exit
     )
 
+
+# =================================================
+# MODO Editor SMPlayer
+# =================================================
+
+# ----- PREEDITOR STATE -----
+
+proyecto = None
+
+current_chapter_name = None
+current_source_file = None
+
+current_segments = []
+current_in = None
+current_out = None
+
+
+def update_project_leds():
+
+    if proyecto is not None:
+        f.ledButton(BTN_NEW_PROJECT, False)
+        f.ledButton(BTN_CLOSE_PROJECT, True)
+    else:
+        f.ledButton(BTN_NEW_PROJECT, True)
+        f.ledButton(BTN_CLOSE_PROJECT, False)
+
+def update_segment_matrix():
+
+    # Limpiar matriz completa columnas 0–7
+    for col in range(8):
+        for row in range(4):
+            f.ledAt(row, col, False)
+
+    # -----------------------------------------
+    # Segmentos actuales (fila 2)
+    # -----------------------------------------
+    for idx, seg in enumerate(current_segments):
+        if idx < 8:
+            f.ledAt(2, idx, True)
+
+    # -----------------------------------------
+    # IN provisional (fila 0)
+    # -----------------------------------------
+    if current_in is not None and len(current_segments) < 8:
+        f.ledAt(0, len(current_segments), True)
+
+    # -----------------------------------------
+    # OUT provisional (fila 1)
+    # -----------------------------------------
+    if current_out is not None and len(current_segments) < 8:
+        f.ledAt(1, len(current_segments), True)
+
+    # -----------------------------------------
+    # Capítulos guardados (fila 3)
+    # -----------------------------------------
+    if proyecto and proyecto.get("jobs"):
+        last_job = proyecto["jobs"][-1]
+
+        for idx, seg in enumerate(last_job.get("segments", [])):
+            if idx < 8:
+                f.ledAt(3, idx, True)
+
+
+def update_editor_buttons():
+
+    # --------------------------------------------------
+    # PROYECTO
+    # --------------------------------------------------
+
+    if proyecto is None:
+        f.ledButton(BTN_NEW_PROJECT, True)
+        f.ledButton(BTN_CLOSE_PROJECT, False)
+        f.ledButton(BTN_EXPORT_PROJECT, False)
+    else:
+        f.ledButton(BTN_NEW_PROJECT, False)
+        f.ledButton(BTN_CLOSE_PROJECT, True)
+        f.ledButton(BTN_EXPORT_PROJECT, True)
+
+    # --------------------------------------------------
+    # CAPÍTULO
+    # --------------------------------------------------
+
+    if proyecto is None:
+        f.ledButton(BTN_NEW_CHAPTER, False)
+        f.ledButton(BTN_SAVE_CHAPTER, False)
+    else:
+        f.ledButton(BTN_NEW_CHAPTER, True)
+
+        if current_segments:
+            f.ledButton(BTN_SAVE_CHAPTER, True)
+        else:
+            f.ledButton(BTN_SAVE_CHAPTER, False)
+
+    # --------------------------------------------------
+    # SEGMENTACIÓN
+    # --------------------------------------------------
+
+    if proyecto is None or current_chapter_name is None:
+        f.ledButton(BTN_MARK_IN, False)
+        f.ledButton(BTN_MARK_OUT, False)
+        f.ledButton(BTN_ADD_SEGMENT, False)
+        f.ledButton(BTN_DELETE_LAST, False)
+        return
+
+    # IN / OUT siempre activos si hay capítulo
+    f.ledButton(BTN_MARK_IN, True)
+    f.ledButton(BTN_MARK_OUT, True)
+
+    # ADD solo si IN y OUT válidos
+    if (
+        current_in is not None
+        and current_out is not None
+        and current_out > current_in
+    ):
+        f.ledButton(BTN_ADD_SEGMENT, True)
+    else:
+        f.ledButton(BTN_ADD_SEGMENT, False)
+
+    # DELETE solo si hay segmentos
+    if current_segments:
+        f.ledButton(BTN_DELETE_LAST, True)
+    else:
+        f.ledButton(BTN_DELETE_LAST, False)
+
+
+
+def export_project_json():
+    if not proyecto:
+        return
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"f998_project_{timestamp}.json"
+
+    data = proyecto.copy()
+    data["created_at"] = datetime.now().isoformat()
+
+    with open(filename, "w", encoding="utf-8") as fjson:
+        json.dump(data, fjson, indent=2, ensure_ascii=False)
+
+
+def preeditor_segment_logic(k, estado):
+    global proyecto
+    global current_chapter_name, current_source_file
+    global current_segments, current_in, current_out
+
+    if not k:
+        return
+
+    if not proyecto and k not in (BTN_NEW_PROJECT,):
+        return
+
+    # ---------- PROYECTO ----------
+
+    if k == BTN_NEW_PROJECT and proyecto is None:
+
+        mpv_set_pause(True)
+
+        nombre = tk_prompt("Nuevo Proyecto", "Nombre del proyecto:")
+
+        if nombre:
+            proyecto = {
+                "project_name": nombre,
+                "jobs": []
+            }
+
+            update_editor_buttons()
+
+    elif k == BTN_CLOSE_PROJECT and proyecto is not None:
+
+        confirm = tk_prompt("Cerrar Proyecto", "Escribe 'SI' para confirmar:")
+
+        if confirm == "SI":
+
+            proyecto = None
+            current_segments.clear()
+            current_in = None
+            current_out = None
+
+            update_segment_matrix()
+            update_editor_buttons()
+
+    elif k == BTN_EXPORT_PROJECT:
+        export_project_json()
+
+    # ---------- CAPITULO ----------
+
+    elif k == BTN_NEW_CHAPTER:
+
+        if not proyecto:
+            return
+
+        # Pausar reproducción
+        mpv_set_pause(True)
+
+        nombre = tk_prompt("Nuevo Capítulo", "Nombre del capítulo (ej 1x03):")
+
+        if nombre:
+            current_chapter_name = nombre
+            current_source_file = mpv_get_path()
+
+            current_segments.clear()
+            current_in = None
+            current_out = None
+
+            update_editor_buttons()
+            update_segment_matrix()
+
+
+    elif k == BTN_SAVE_CHAPTER:
+        if (
+            proyecto
+            and current_chapter_name
+            and current_source_file
+            and current_segments
+        ):
+            proyecto["jobs"].append({
+                "output": current_chapter_name,
+                "source": current_source_file,
+                "segments": current_segments.copy()
+            })
+
+            current_segments.clear()
+            current_in = None
+            current_out = None
+            update_editor_buttons()
+            update_segment_matrix()
+
+    # ---------- SEGMENTACION ----------
+
+    elif k == BTN_MARK_IN:
+        t = mpv_get_time()
+        if t is not None:
+            current_in = t
+            update_segment_matrix()
+
+    elif k == BTN_MARK_OUT:
+        t = mpv_get_time()
+        if t is not None:
+            current_out = t
+            update_editor_buttons()
+            update_segment_matrix()
+
+    elif k == BTN_ADD_SEGMENT:
+        if (
+            current_in is not None
+            and current_out is not None
+            and current_out > current_in
+            and len(current_segments) < 8
+        ):
+            current_segments.append({
+                "in": current_in,
+                "out": current_out
+            })
+            current_in = None
+            current_out = None
+            update_editor_buttons()
+            update_segment_matrix()
+
+    elif k == BTN_DELETE_LAST:
+        if current_segments:
+            current_segments.pop()
+            update_editor_buttons()
+            update_segment_matrix()
+
+def preeditor_init():
+
+    # Estado visual proyecto
+    update_project_leds()
+
+    # Estado visual segmentos
+    update_segment_matrix()
+
+    # LED modo siempre activo al entrar
+    f.ledButton(BTN_PREEDITOR, True)
+
+    update_editor_buttons()
+
+def preeditor_loop(k, estado):
+    global cached_pause_state
+
+    foco = smplayer_en_foco()
+
+    # LED modo PreEditor
+    f.ledBlink(BTN_PREEDITOR, not foco)
+
+    if not foco:
+        return
+
+    cached_pause_state = None
+    update_play_led()
+
+    f.ledButton(BTN_PREEDITOR, True)
+
+    # Reutilizamos toda la lógica SMPlayer
+    smplayer_core(k, estado)
+
+    # Añadimos capa de segmentación
+    preeditor_segment_logic(k, estado)
+
+
+def modo_preeditor():
+
+    update_project_leds()
+    update_segment_matrix()
+
+    return modo_base(
+        BTN_PREEDITOR,   # 28
+        [
+            BTN_PLAY,
+            BTN_FRAME_LEFT,
+            BTN_FRAME_RIGHT,
+            BTN_SCREENSHOT,
+            BTN_GOTO_START,
+            BTN_GOTO_END,
+            BTN_MARK_ADD,
+            BTN_MARK_PREV,
+            BTN_MARK_NEXT,
+
+            BTN_NEW_PROJECT,
+            BTN_CLOSE_PROJECT,
+            BTN_EXPORT_PROJECT,
+            BTN_NEW_CHAPTER,
+            BTN_SAVE_CHAPTER,
+            BTN_MARK_IN,
+            BTN_MARK_OUT,
+            BTN_ADD_SEGMENT,
+            BTN_DELETE_LAST,
+        ],
+        preeditor_init,
+        preeditor_loop,
+        lambda: None
+    )
+
+
 # =================================================
 # MODO DUMMY
 # =================================================
@@ -618,6 +1176,10 @@ def bucle_principal():
         elif k == BTN_MACROS:
             comprobar_condiciones_entrada(k)
             modo_macros()
+
+        elif k == BTN_PREEDITOR:
+            comprobar_condiciones_entrada(k)
+            modo_preeditor()
 
         elif k in MODOS:
             comprobar_condiciones_entrada(k)

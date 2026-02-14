@@ -1,0 +1,16 @@
+{
+  "project_name": "enterprise",
+  "jobs": [
+    {
+      "output": "1x01",
+      "source": "/home/jordi/Vídeos/Enterprise 4x01.mp4",
+      "segments": [
+        {
+          "in": 760.0,
+          "out": 1280.666667
+        }
+      ]
+    }
+  ],
+  "created_at": "2026-02-14T12:59:08.210853"
+}
