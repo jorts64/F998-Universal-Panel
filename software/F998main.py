@@ -324,6 +324,7 @@ def modo_preeditor():
             BTN_DELETE_LAST,
             BTN_EDIT_JSON,
             BTN_MARK_END,
+            BTN_SKIP_40,
         ],
         lambda: preeditor_init(f),
         lambda k, estado: preeditor_loop(f, k, estado, smplayer_en_foco),
