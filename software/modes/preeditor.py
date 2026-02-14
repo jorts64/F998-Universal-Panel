@@ -42,6 +42,10 @@ BTN_MARK_OUT        = 30
 BTN_ADD_SEGMENT     = 21
 BTN_DELETE_LAST     = 31
 
+BTN_EDIT_JSON = 13
+
+BTN_MARK_END = 33
+
 
 # =================================================
 # VARIABLES GLOBALES (idénticas al original)
@@ -87,12 +91,14 @@ def update_segment_matrix(f):
     if current_out is not None and len(current_segments) < 8:
         f.ledAt(1, len(current_segments), True)
 
+    # -----------------------------------------
+    # Capítulos cerrados (fila 3)
+    # -----------------------------------------
     if proyecto and proyecto.get("jobs"):
-        last_job = proyecto["jobs"][-1]
+        num_jobs = len(proyecto["jobs"])
 
-        for idx, seg in enumerate(last_job.get("segments", [])):
-            if idx < 8:
-                f.ledAt(3, idx, True)
+        for idx in range(min(num_jobs, 8)):
+            f.ledAt(3, idx, True)
 
 
 def update_editor_buttons(f):
@@ -126,7 +132,10 @@ def update_editor_buttons(f):
     can_add = (
         current_in is not None
         and current_out is not None
-        and current_out > current_in
+        and (
+            current_out == "END"
+            or current_out > current_in
+        )
     )
 
     f.ledButton(BTN_ADD_SEGMENT, can_add)
@@ -151,6 +160,95 @@ def export_project_json():
     with open(filename, "w", encoding="utf-8") as fjson:
         json.dump(data, fjson, indent=2, ensure_ascii=False)
 
+
+# =================================================
+# EDITOR JSON
+# =================================================
+
+def editar_json_proyecto():
+
+    global proyecto
+
+    if not proyecto:
+        return
+
+    import tkinter as tk
+    from tkinter import messagebox
+
+    root = tk.Tk()
+    root.title("Editar JSON Proyecto")
+
+    # ---- COLORES OSCUROS ----
+    bg_color = "#1e1e1e"
+    fg_color = "#e0e0e0"
+    insert_color = "#ffffff"
+    select_bg = "#44475a"
+
+    root.configure(bg=bg_color)
+
+    text = tk.Text(
+        root,
+        bg=bg_color,
+        fg=fg_color,
+        insertbackground=insert_color,
+        selectbackground=select_bg,
+        width=100,
+        height=35,
+        undo=True
+    )
+    text.pack(padx=10, pady=10, fill="both", expand=True)
+
+    # Insertar JSON formateado
+    contenido = json.dumps(proyecto, indent=2, ensure_ascii=False)
+    text.insert("1.0", contenido)
+
+    def guardar():
+        global proyecto
+        nuevo_texto = text.get("1.0", tk.END)
+
+        try:
+            nuevo_json = json.loads(nuevo_texto)
+
+            # Validación mínima estructural
+            if not isinstance(nuevo_json, dict):
+                raise ValueError("El JSON debe ser un objeto raíz.")
+
+            if "project_name" not in nuevo_json:
+                raise ValueError("Falta 'project_name'.")
+
+            if "jobs" not in nuevo_json:
+                raise ValueError("Falta 'jobs'.")
+
+            for job in nuevo_json["jobs"]:
+                if "segments" not in job:
+                    raise ValueError("Cada job debe tener 'segments'.")
+
+                for seg in job["segments"]:
+                    if "in" not in seg or "out" not in seg:
+                        raise ValueError("Cada segmento debe tener 'in' y 'out'.")
+
+                    if not (
+                        isinstance(seg["out"], (int, float))
+                        or seg["out"] == "END"
+                    ):
+                        raise ValueError("'out' debe ser número o 'END'.")
+
+            if not isinstance(nuevo_json["jobs"], list):
+                raise ValueError("'jobs' debe ser una lista.")
+
+            proyecto = nuevo_json
+            root.destroy()
+
+        except Exception as e:
+            messagebox.showerror("Error JSON", f"JSON inválido:\n{e}")
+
+    btn_frame = tk.Frame(root, bg=bg_color)
+    btn_frame.pack(pady=5)
+
+    tk.Button(btn_frame, text="Guardar", command=guardar).pack(side="left", padx=10)
+    tk.Button(btn_frame, text="Cancelar", command=root.destroy).pack(side="left", padx=10)
+
+    root.mainloop()
 
 # =================================================
 # LÓGICA PRINCIPAL
@@ -194,6 +292,9 @@ def preeditor_segment_logic(f, k):
             current_segments.clear()
             current_in = None
             current_out = None
+
+    elif k == BTN_EDIT_JSON:
+        editar_json_proyecto()
 
     elif k == BTN_EXPORT_PROJECT:
         export_project_json()
@@ -247,11 +348,17 @@ def preeditor_segment_logic(f, k):
         if t is not None:
             current_out = t
 
+    elif k == BTN_MARK_END:
+        current_out = "END"
+
     elif k == BTN_ADD_SEGMENT:
         if (
             current_in is not None
             and current_out is not None
-            and current_out > current_in
+            and (
+                current_out == "END"
+                or current_out > current_in
+            )
             and len(current_segments) < 8
         ):
             current_segments.append({
