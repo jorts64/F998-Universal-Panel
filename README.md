@@ -14,6 +14,8 @@ El diseño es totalmente flexible. Se puede utilizar tal cual con un ordenador c
 
 # F998 – Panel de Control Programable
 
+![](doc/layouts/plantilla.png)
+
 ## 📌 Introducción
 
 **F998** es un panel de control físico programable diseñado para interactuar con aplicaciones de escritorio mediante **comunicación serie**, sin utilizar HID.
@@ -129,6 +131,22 @@ Modo de **automatización configurable** mediante archivo YAML:
 
 ---
 
+### ▶️ Modo preeditor
+
+El **Modo PreEditor** del panel **F998** está diseñado para crear proyectos de segmentación a partir de material reproducido en **SMPlayer/mpv**:
+
+- El panel funciona como sistema de *marcado físico*
+- SMPlayer actúa como visor
+- El usuario define cortes con precisión
+- Se genera un JSON limpio y editable
+- No se altera el vídeo original
+
+PreEditor es una capa lógica sobre SMPlayer.
+
+📄 Documentación técnica:
+- 👉 [f998_modo_preeditor_documentacion](doc/f_998_modo_preeditor_documentacion.md)
+
+---
 ## 📁 Configuración
 
 - Las macros se definen en el archivo [macros.yaml](software/macros.yaml)
@@ -168,6 +186,8 @@ El panel puede evolucionar añadiendo nuevos modos sin modificar la base del sis
 - [f998_modo_kdenlive_documentacion](doc/f_998_modo_kdenlive_documentacion.md) – modo Kdenlive
 - [f998_modo_smplayer_documentacion](doc/f_998_modo_smplayer_documentacion.md) – modo SMPlayer
 - [f998_modo_macros_documentacion](doc/f_998_modo_macros_documentacion.md) – modo Macros
+- [f998_modo_preeditor_documentacion](doc/f_998_modo_preeditor_documentacion.md) – modo preeditor
+- [f998_worker_documentacion](doc/f_998_worker_documentacion.md) – worker que procesa el JSON generado por el modo preeditor
 - [f998_tabla_comandos](doc/f_998_tabla_comandos.md) – Tabla resumen de comandos del protocolo serie
 - [f998_tabla_api_python](doc/f_998_modo_tabla_api_python.md) – Tabla resumen API Python
 - [layout.png](doc/layout.png) – Identificacion de la disposición de los botones, potenciomentros, vúmetros y leds (array 4x9)

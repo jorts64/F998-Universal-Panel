@@ -1,201 +1,237 @@
 # Modo SMPlayer – F998
 
+![](layouts/smplayer.png)
+
 ## 📌 Descripción general
 
-El **Modo SMPlayer** del panel **F998** está orientado al control cómodo y preciso de la reproducción de vídeo mediante **SMPlayer** (y su backend **mpv**), utilizando controles físicos y comunicación serie.
+El **Modo SMPlayer** del panel **F998** está orientado al control avanzado y preciso de la reproducción de vídeo mediante **SMPlayer** (backend **mpv**), utilizando controles físicos y comunicación IPC directa.
 
-Este modo reutiliza criterios ergonómicos y filosóficos del modo Kdenlive, pero adaptados a un entorno de **reproducción**, no de edición.
+Este modo combina:
+- atajos de teclado nativos
+- comandos directos a **mpv vía socket IPC**
+
+para garantizar un comportamiento determinista y no acumulativo.
 
 ---
 
 ## 🎛️ Filosofía de funcionamiento
 
-- El panel actúa como **control remoto avanzado** para SMPlayer
+- El panel actúa como control remoto físico avanzado
 - No se utiliza HID
-- Las acciones se envían como atajos de teclado o comandos IPC
-- Los botones activos **siempre están encendidos o en parpadeo**
-- El parpadeo indica estados alternativos (pausa, desarmado, error de foco)
+- Se prioriza IPC cuando es posible
+- Los botones activos permanecen encendidos
+- El parpadeo indica estado alternativo (pausa o foco incorrecto)
 
 ---
 
 ## 🔁 Activación del modo
 
-- El **Modo SMPlayer** está asociado al **botón 38**
+- Asociado al **botón 38**
 
 Estados del botón 38:
-- **Encendido fijo** → modo activo
-- **Parpadeo** → modo seleccionado pero bloqueado (foco incorrecto)
+- Encendido fijo → modo activo con foco
+- Parpadeo → modo activo sin foco
 
 Al entrar en el modo:
 - Se apagan todos los LEDs
-- Se encienden únicamente los controles operativos del modo
+- Se encienden únicamente los controles operativos
 
 ---
 
 ## 🔍 Control de foco
 
-Antes de ejecutar cualquier acción:
+Antes de ejecutar acciones:
 
-- El script comprueba si **SMPlayer** tiene el foco
+- Se verifica que SMPlayer tenga el foco real
 - Si no lo tiene:
   - No se envían órdenes
-  - El botón 38 pasa a **parpadeo**
-- Al recuperar el foco:
-  - El botón 38 se enciende fijo
+  - El botón 38 parpadea
+- Al recuperar foco:
+  - El botón queda fijo
   - Se reanudan las acciones
-
-Este mecanismo evita interferencias con otras aplicaciones.
 
 ---
 
 ## ⏱️ Delays
 
-- **Delay humano en botones**: 300 ms
-- **Delay en ruedas (`digPot`)**: activo en este modo
-
-Esto permite un control preciso sin sobrepasar acciones.
+- Delay humano botones: 300 ms
+- Frame stepping dinámico en digPot(5):
+  - Movimiento leve → con delay
+  - Movimiento fuerte → sin delay
 
 ---
 
-## 🎚️ Controles asignados
+# 🎚️ Controles asignados
 
-### 🔄 Ruedas (digPot)
+## 🔄 Ruedas digitales (digPot)
 
-#### 🎞️ Rueda de navegación – `digPot(7)`
+### 🎞️ Navegación – digPot(7)
 
-Se aprovechan los **atajos nativos de SMPlayer**:
-
-| Valor digPot(7) | Acción enviada |
-|---------------|---------------|
+| Valor | Acción |
+|--------|--------|
 | 0 | PageDown |
 | 1 | Flecha abajo |
 | 2 | Flecha izquierda |
-| 3 | (centro) – sin acción |
+| 3 | Centro |
 | 4 | Flecha derecha |
 | 5 | Flecha arriba |
 | 6 | PageUp |
 
-Esta rueda permite:
-- navegación por la línea de tiempo
-- saltos rápidos y finos
+Permite navegación por línea de tiempo y saltos finos.
 
 ---
 
-#### 🔊 Volumen SMPlayer – `digPot(2)`
+### 🎬 Frame stepping – digPot(5)
 
-- Controla el **volumen interno de SMPlayer**
-- Acciones enviadas:
-  - `9` → subir volumen
-  - `0` → bajar volumen
-- El sentido está ajustado ergonómicamente
+| digPot(5)-3 | Acción |
+|--------------|--------|
+| ≤ -2 | Frame anterior (sin delay) |
+| -1 | Frame anterior (con delay) |
+| 0 | Sin acción |
+| +1 | Frame siguiente (con delay) |
+| ≥ +2 | Frame siguiente (sin delay) |
 
----
-
-#### 🔊 Volumen del sistema – `digPot(1)`
-
-- Control del volumen global del sistema
-- Implementado mediante `amixer`
+Permite control fino o scrubbing rápido.
 
 ---
 
-### 🎚️ Potenciómetros analógicos
+### ⚡ Velocidad de reproducción – digPot(4)
 
-- No utilizados en este modo
+Control absoluto vía IPC (`set_property speed`):
 
----
+| digPot(4)-3 | Velocidad |
+|--------------|------------|
+| -3 | 1/8× |
+| -2 | 1/4× |
+| -1 | 1/2× |
+| 0 | 1× |
+| +1 | 2× |
+| +2 | 4× |
+| +3 | 8× |
 
-## ⌨️ Botones
-
-### ▶️ Play / Pause
-
-- **Botón 27**
-- Acción: `Espacio`
-
-Estados del LED:
-- **Encendido fijo** → reproducción
-- **Parpadeo** → pausa
-
----
-
-### ⏪⏩ Avance / retroceso de frame
-
-- **Botón 36** → frame anterior (`,`)
-- **Botón 37** → frame siguiente (`.`)
+- No es acumulativo
+- Siempre fija velocidad absoluta
+- Solo se envía comando cuando cambia la posición
 
 ---
 
-### 📸 Captura de pantalla
+### 🔊 Volumen SMPlayer – digPot(2)
 
-- **Botón 26**
-- Acción: tecla `S`
+- 9 → subir volumen
+- 0 → bajar volumen
+
+Control interno del reproductor.
 
 ---
 
-### 🎬 Saltos especiales (mpv IPC)
+### 🔊 Volumen del sistema – digPot(1)
 
-SMPlayer lanza `mpv` con soporte IPC:
+- Control global vía `amixer`
+- Independiente del volumen interno
 
-```bash
+---
+
+# ⌨️ Botones
+
+## ▶️ Play / Pause – Botón 27
+
+- Acción: Espacio
+
+LED:
+- Fijo → reproducción
+- Parpadeo → pausa
+
+Estado sincronizado vía IPC.
+
+---
+
+## ⏪⏩ Salto ±1 segundo – Botones 36 / 37
+
+- 36 → seek_relative(-1)
+- 37 → seek_relative(+1)
+
+Implementado por IPC.
+
+---
+
+## ⏩ Avance rápido de capítulo – Botón 17
+
+- seek_relative(2400)
+- Salto exacto de 40 minutos
+- Implementado por IPC
+
+---
+
+## 🎯 Seek absoluto – Botón 16
+
+- Abre diálogo Tk
+- Permite introducir segundos (float)
+- Ejecuta seek absoluto
+- Validación numérica básica
+
+---
+
+## 📸 Captura de pantalla – Botón 26
+
+- Acción: tecla S
+
+---
+
+## 🔖 Marcadores
+
+| Botón | Acción |
+|--------|--------|
+| 15 | Ctrl+A |
+| 24 | Ctrl+B |
+| 25 | Ctrl+N |
+
+---
+
+# 🧠 Comunicación con mpv
+
+SMPlayer lanza mpv con:
+
 --input-ipc-server=/tmp/mpvsocket
-```
 
-Se aprovecha este canal para acciones precisas:
+Se utilizan:
 
-- **Botón 16** → saltar al inicio del vídeo
-- **Botón 17** → saltar a 1 minuto antes del final
+- seek
+- set_property speed
+- get_property pause
+- get_property time-pos
 
-Los comandos se envían mediante `socat`.
-
----
-
-## 🎛️ Indicadores visuales
-
-### 🔋 Barra de batería
-
-- Indica:
-  - Dirección de desplazamiento
-  - Intensidad del salto
-- Nunca se llena completamente la barra
+Comunicación directa y determinista.
 
 ---
 
-### 🧱 Matriz 4×9
+# 🎛️ Indicadores visuales
 
-- No se utiliza para vúmetros
-- Puede emplearse para alertas de estado o errores
+## 🔋 Barra de batería
 
----
+Indica dirección e intensidad de desplazamiento.
 
-## 🧠 Estado interno
+## 🧱 Matriz 4×9
 
-El modo mantiene estado de:
-- reproducción / pausa
-- foco de ventana
-
-Al entrar en el modo:
-- Se inicializan LEDs
-- Se limpian indicadores gráficos
+No utilizada en este modo.
 
 ---
 
-## ✔️ Estado del modo
+# 🧠 Estado interno
+
+Mantiene:
+
+- Estado reproducción/pausa
+- Última velocidad establecida
+- Control de frame stepping
+- Estado de foco
+
+---
+
+# ✔️ Estado del modo
 
 - Funcional
 - Estable
-- Adecuado para reproducción diaria
+- Determinista
+- Control absoluto de velocidad y seek
 
-El **Modo SMPlayer** se considera **estable (v1)**.
-
----
-
-## 🚀 Posibles mejoras futuras
-
-- Control de velocidad de reproducción
-- Subtítulos
-- Selección de pistas de audio
-- Feedback desde mpv
-
----
-
-> **Nota**: Este modo convive con otros perfiles del panel F998 como Kdenlive o Macros y se selecciona desde el bucle principal de modos.
-
+El **Modo SMPlayer** se considera actualmente estable (v2).

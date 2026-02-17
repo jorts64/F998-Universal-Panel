@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Botonera 3x8</title>
+
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+
+        /* 
+           Cada columna = 1fr
+           Filas 2 y 3 = 1fr (cuadradas)
+           Fila 1 = 0.5fr (mitad de altura)
+        */
+        grid-template-rows: 0.5fr 1fr 1fr;
+
+        width: 100vw;
+
+        /* Fuerza que la altura se base en el ancho para mantener proporciones */
+        aspect-ratio: 8 / 2.5;
+
+        gap: 4px;
+        padding: 4px;
+        box-sizing: border-box;
+    }
+
+    button {
+        width: 100%;
+        height: 100%;
+        border: none;
+        font-size: 1.2vw;
+        font-weight: bold;
+        color: black;
+    }
+
+    /* Colores disponibles */
+    .gris { background-color: #d3d3d3; }
+    .blanco { background-color: #ffffff; }
+    .naranja { background-color: #ff7f50; }
+    .azul { background-color: #6a5acd; }
+    .verde { background-color: #98fb98; }
+    .rojo { background-color: #ff4500; }
+
+    .matriz-superior {
+        display: grid;
+        grid-template-columns: auto repeat(9, 1fr);
+        gap: 4px;
+        width: calc(100% * 9 / 24); /* 9 cuadrados equivalen a 3 botones (9/24 del total) */
+        margin-bottom: 20px;
+    }
+    
+    .small-square {
+        aspect-ratio: 1 / 1;
+        width: 100%;
+        background-color: #d3d3d3;
+    }
+
+  .bloque-superior {
+      display: flex;
+      align-items: stretch;
+      gap: 30px;
+  }
+
+  .columna-central {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+  }
+
+  /* Grid de 5 columnas alineadas */
+  .grid-central {
+      display: grid;
+      grid-template-columns: repeat(5, auto);
+      justify-content: start;
+      gap: 20px;
+  }
+
+  /* Cada bloque pequeño */
+  .bloque-pequeno {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 12px;
+  }
+
+  .circulo-pequeno {
+      width: 40px;
+      aspect-ratio: 1 / 1;
+      background-color: #d3d3d3;
+      border-radius: 50%;
+      position: relative;
+  }
+
+  /* Línea roja radial vertical (mitad superior) */
+  .circulo-pequeno::before {
+      content: "";
+      position: absolute;
+      top: 0%;
+      left: 50%;
+      width: 2px;           /* más fina que en el grande */
+      height: 25%;          /* misma proporción que el grande */
+      background-color: red;
+      transform: translateX(-50%);
+  }
+
+  .circulo-pequeno.activo::before {
+      background-color: white;
+  }
+
+  /* Rectángulos verticales */
+  .rectangulo-vertical {
+      width: 40px;
+      height: 120px;
+      background-color: #d3d3d3;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+  }
+
+  .rectangulo-vertical::before {
+      content: "";
+      position: absolute;
+      width: 6px;
+      height: 90%;
+      background-color: #444;
+      border-radius: 3px;
+  }
+
+  .rectangulo-vertical::after {
+      content: "";
+      position: absolute;
+      width: 2px;
+      height: 95%;
+      background-color: red;
+  }
+
+  .rectangulo-vertical.activo {
+      background-color: #4caf50;
+  }
+
+  .rectangulo-vertical.activo::after {
+      background-color: white;
+  }
+
+  .rectangulo-vertical.activo::after {
+      background-color: white;
+  }
+
+  .slider-cap {
+      position: absolute;
+      width: 28px;
+      height: 12px;
+      background-color: #222;
+      border-radius: 2px;
+      top: 80%;   /* posición del fader */
+  }
+
+  .bloque-rectangulo {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 12px;
+  }
+
+  .bloque-rectangulo::before,
+  .bloque-rectangulo::after {
+      content: "";
+      position: absolute;
+      top: 10px;
+      bottom: 30px;
+      width: 10px;
+      background: repeating-linear-gradient(
+          to bottom,
+          white 0px,
+          white 2px,
+          transparent 2px,
+          transparent 10px
+      );
+  }
+  
+  .bloque-rectangulo::before {
+      left: -14px;
+  }
+  
+  .bloque-rectangulo::after {
+      right: -14px;
+  }
+
+  .rectangulo-vertical .base-line {
+      position: absolute;
+      bottom: 0;
+      width: 80%;
+      height: 3px;
+      background-color: red;
+  }
+  
+
+  /* Columna derecha con grandes */
+  .columna-grandes {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;   /* centra el conjunto */
+      gap: 20px;                 /* separación extra entre los dos */
+      padding-top: 20px;
+      padding-bottom: 20px;
+      height: 100%;
+  }
+
+  .circulo-grande {
+      width: 80px;
+      aspect-ratio: 1 / 1;
+      background-color: #d3d3d3;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      position: relative;
+  }
+
+  /* Línea roja radial vertical (mitad superior) */
+  .circulo-grande::before {
+      content: "";
+      position: absolute;
+      top: 0%;
+      left: 50%;
+      width: 3px;
+      height: 25%;
+      background-color: red;
+      transform: translateX(-50%);
+  }
+
+  .circulo-grande.activo::before {
+      background-color: white;   /* indicador distinto cuando activo */
+  }
+
+  .activo {
+      background-color: #4caf50;   /* verde activo (puedes cambiarlo) */
+  }
+
+    
+</style>
+</head>
+
+<body bgcolor="ffdead">
+
+<div><br/></div>
+
+<div class="bloque-superior">
+
+    <!-- MATRIZ 4x9 -->
+    <div class="matriz-superior">
+
+        <div style="display:flex; align-items:center; padding-right:8px;">IN</div>
+        <div class="small-square"></div><div class="small-square"></div><div class="small-square"></div>
+        <div class="small-square"></div><div class="small-square"></div><div class="small-square"></div>
+        <div class="small-square"></div><div class="small-square"></div><div class="small-square"></div>
+
+        <div style="display:flex; align-items:center; padding-right:8px;">OUT</div>
+        <div class="small-square"></div><div class="small-square"></div><div class="small-square"></div>
+        <div class="small-square"></div><div class="small-square"></div><div class="small-square"></div>
+        <div class="small-square"></div><div class="small-square"></div><div class="small-square"></div>
+
+        <div style="display:flex; align-items:center; padding-right:8px;">SEGMENT</div>
+        <div class="small-square"></div><div class="small-square"></div><div class="small-square"></div>
+        <div class="small-square"></div><div class="small-square"></div><div class="small-square"></div>
+        <div class="small-square"></div><div class="small-square"></div><div class="small-square"></div>
+
+        <div style="display:flex; align-items:center; padding-right:8px;">CHAPTER</div>
+        <div class="small-square"></div><div class="small-square"></div><div class="small-square"></div>
+        <div class="small-square"></div><div class="small-square"></div><div class="small-square"></div>
+        <div class="small-square"></div><div class="small-square"></div><div class="small-square"></div>
+
+    </div>
+
+    <!-- COLUMNA CENTRAL -->
+    <div class="columna-central">
+
+        <div class="grid-central">
+
+            <!-- Fila 1: círculos -->
+            <div class="bloque-pequeno">
+                <div class="circulo-pequeno activo"></div>
+                <div>SYS VOL</div>
+            </div>
+
+            <div class="bloque-pequeno">
+                <div class="circulo-pequeno activo"></div>
+                <div>SMP VOL</div>
+            </div>
+
+            <div class="bloque-pequeno">
+                <div class="circulo-pequeno"></div>
+                <div>P3</div>
+            </div>
+
+            <div class="bloque-pequeno">
+                <div class="circulo-pequeno activo"></div>
+                <div>SPEED</div>
+            </div>
+
+            <div class="bloque-pequeno">
+                <div class="circulo-pequeno activo"></div>
+                <div>FRAME</div>
+            </div>
+
+            <!-- Fila 2: rectángulos alineados bajo P2 y P4 -->
+            <div></div>
+
+            <div class="bloque-rectangulo">
+                <div class="rectangulo-vertical"></div>
+                <div class="slider-cap"></div>
+                <div class="base-line"></div>
+                <div>P8</div>
+            </div>
+
+            <div></div>
+
+            <div class="bloque-rectangulo">
+                <div class="rectangulo-vertical"></div>
+                <div class="slider-cap"></div>
+                <div class="base-line"></div>
+                <div>P9</div>
+            </div>
+
+            <div></div>
+
+        </div>
+
+    </div>
+
+    <!-- COLUMNA DERECHA GRANDES -->
+    <div class="columna-grandes">
+        <div class="circulo-grande">P6</div>
+        <div class="circulo-grande activo">CURSOR</div>
+    </div>
+
+</div>
+
+
+<div class="grid">
+
+    <!-- FILA 1 -->
+    <button class="blanco">CHAPTER ADD</button>
+    <button class="verde">CHAPTER CLOSE</button>
+    <button class="rojo">PROJECT ADD</button>
+    <button class="naranja">EDIT PROJECT</button>
+    <button class="gris">B14</button>
+    <button class="verde">ADD MARKER</button>
+    <button class="rojo">JUMP</button>
+    <button class="naranja">40 MIN+</button>
+
+    <!-- FILA 2 -->
+    <button class="naranja">IN</button>
+    <button class="naranja">ADD SEGMENT</button>
+    <button class="azul">CLOSE PROJECT</button>
+    <button class="gris">B23</button>
+    <button class="verde">MARKER &lt;&lt;</button>
+    <button class="verde">MARKER &gt;&gt;</button>
+    <button class="rojo">SCREENSHOT</button>
+    <button class="rojo">PAUSE</button>
+
+    <!-- FILA 3 -->
+    <button class="naranja">OUT</button>
+    <button class="naranja">DEL SEGMENT</button>
+    <button class="azul">EXPORT PROJECT</button>
+    <button class="azul">OUT=END</button>
+    <button class="verde">00:00:00</button>
+    <button class="verde">END-60s</button>
+    <button class="rojo">1s &lt;&lt;</button>
+    <button class="rojo">1s &gt;&gt;</button>
+
+</div>
+
+</body>
+</html>

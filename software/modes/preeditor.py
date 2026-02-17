@@ -47,8 +47,6 @@ BTN_EDIT_JSON = 13
 
 BTN_MARK_END = 33
 
-BTN_SKIP_40 = 17
-
 # =================================================
 # VARIABLES GLOBALES (idénticas al original)
 # =================================================
@@ -373,9 +371,6 @@ def preeditor_segment_logic(f, k):
     elif k == BTN_DELETE_LAST:
         if current_segments:
             current_segments.pop()
-
-    elif k == BTN_SKIP_40:
-        mpv_seek_relative(40 * 60)  # 2400 segundos
 
     update_editor_buttons(f)
     update_segment_matrix(f)

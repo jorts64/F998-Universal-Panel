@@ -29,6 +29,10 @@ BTN_MARK_ADD  = 15
 BTN_MARK_PREV = 24
 BTN_MARK_NEXT = 25
 
+BTN_SKIP_40 = 17
+BTN_SEEK_ABS = 16
+
+
 MPV_SOCKET = "/tmp/mpvsocket"
 
 BTN_DELAY = 0.30
@@ -48,6 +52,8 @@ last_volume_smplayer = 0
 last_volume_system = 0 
 last_pause_check = 0
 cached_pause_state = None
+last_frame_time = 0
+last_speed_pos = None
 
 kbd = Controller()
 
@@ -121,6 +127,31 @@ def mpv_seek_absolute(seconds):
 
 def mpv_seek_relative(seconds):
     mpv_send({"command": ["seek", seconds, "relative"]})
+
+
+def mpv_set_speed(value):
+    mpv_send({"command": ["set_property", "speed", value]})
+
+
+def pedir_seek_absoluto():
+
+    from modes.smplayer import tk_prompt
+
+    valor = tk_prompt("Seek absoluto", "Introduce segundos:")
+
+    if valor is None:
+        return
+
+    try:
+        segundos = float(valor)
+
+        if segundos < 0:
+            return
+
+        mpv_seek_absolute(segundos)
+
+    except Exception:
+        pass
 
 
 # =================================================
@@ -241,10 +272,13 @@ def smplayer_core(f, k, estado):
                 mpv_set_pause(not p)
 
         elif k == BTN_FRAME_LEFT:
-            kbd.tap(',')
+            mpv_seek_relative(-1)
 
         elif k == BTN_FRAME_RIGHT:
-            kbd.tap('.')
+            mpv_seek_relative(1)
+
+        elif k == BTN_SKIP_40:
+            mpv_seek_relative(40 * 60)  # 2400 segundos
 
         elif k == BTN_SCREENSHOT:
             kbd.tap('s')
@@ -254,6 +288,9 @@ def smplayer_core(f, k, estado):
 
         elif k == BTN_GOTO_END:
             mpv_seek_absolute(-60)
+
+        elif k == BTN_SEEK_ABS:
+            pedir_seek_absoluto()
 
         elif k == BTN_MARK_ADD:
             kbd.press(Key.ctrl); kbd.tap('a'); kbd.release(Key.ctrl)
@@ -276,6 +313,58 @@ def smplayer_core(f, k, estado):
         elif v == 4: kbd.tap(Key.right)
         elif v == 5: kbd.tap(Key.up)
         elif v == 6: kbd.tap(Key.page_up)
+
+    # --------------------------------------------------
+    # FRAME STEP con digPot(5) con delay variable
+    # --------------------------------------------------
+
+    global last_frame_time
+
+    dz = estado["D"][4] - 3  # digPot(5)
+    now_frame = time.time()
+
+    if dz != 0:
+
+        # Determinar si necesita delay
+        use_delay = abs(dz) == 1
+
+        if not use_delay or (now_frame - last_frame_time > BTN_DELAY):
+
+            last_frame_time = now_frame
+
+            if dz < 0:
+                kbd.tap(',')
+
+            elif dz > 0:
+                kbd.tap('.')
+
+    # --------------------------------------------------
+    # CONTROL VELOCIDAD con digPot(4) vía IPC
+    # --------------------------------------------------
+
+    global last_speed_pos
+
+    speed_pos = estado["D"][3]  # digPot(4)
+
+    if speed_pos != last_speed_pos:
+
+        last_speed_pos = speed_pos
+
+        delta = speed_pos - 3
+
+        speed_map = {
+            -3: 1/8,
+            -2: 1/4,
+            -1: 1/2,
+             0: 1,
+             1: 2,
+             2: 4,
+             3: 8,
+        }
+
+        if delta in speed_map:
+            mpv_set_speed(speed_map[delta])
+
 
     # VOLUMEN SISTEMA
     dv = estado["D"][0] - 3
